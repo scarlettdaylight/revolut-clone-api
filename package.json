@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "migrate:local": "npx prisma migrate dev --name init"
+    "migrate:local": "npx prisma migrate dev --name init",
+    "seed": "npx ts-node prisma/seed.ts",
+    "format": "npx prisma format"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +17,8 @@
     "prisma": "^4.11.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.11.0"
   }
 }
