@@ -1,6 +1,5 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,8 +11,100 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// enum
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  RATHER_NOT_TO_SAY
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum UserStatus {
+  ACTIVE
+  TERMINATED
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+// Type
+model AccountType {
+  id        Int       @id @default(autoincrement())
+  value     String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  accounts  Account[] @relation("account_accountTypeId")
+}
+
+model TransactionType {
+  id           Int           @id @default(autoincrement())
+  value        String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[] @relation("transaction_typeId")
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id           Int        @id @default(autoincrement())
+  name         String
+  email        String     @unique
+  address      String?
+  gender       Gender
+  dateOfBirth  DateTime
+  status       UserStatus
+  registeredAt DateTime   @default(now())
+  terminatedAt DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  accounts     Account[]  @relation("account_userId")
+}
+
+model Currency {
+  id           Int           @id @default(autoincrement())
+  code         String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  accounts     Account[]     @relation("account_currencyId")
+  transactions Transaction[] @relation("transaction_currencyId")
+}
+
+model Account {
+  id                  Int           @id @default(autoincrement())
+  registeredAt        DateTime
+  terminatedAt        DateTime?
+  userId              Int
+  currencyId          Int
+  accountTypeId       Int
+  status              AccountStatus
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  user                User          @relation("account_userId", fields: [userId], references: [id])
+  currency            Currency      @relation("account_currencyId", fields: [currencyId], references: [id])
+  accountType         AccountType   @relation("account_accountTypeId", fields: [accountTypeId], references: [id])
+  outwardTransactions Transaction[] @relation("transaction_fromAccount")
+  inwardTransactions  Transaction[] @relation("transaction_toAccount")
+}
+
+model Transaction {
+  id            Int               @id @default(autoincrement())
+  fromAccountId Int?
+  toAccountId   Int
+  typeId        Int
+  currencyId    Int
+  status        TransactionStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  fromAccount   Account?          @relation("transaction_fromAccount", fields: [fromAccountId], references: [id])
+  toAccount     Account           @relation("transaction_toAccount", fields: [toAccountId], references: [id])
+  type          TransactionType   @relation("transaction_typeId", fields: [typeId], references: [id])
+  currency      Currency          @relation("transaction_currencyId", fields: [currencyId], references: [id])
 }
